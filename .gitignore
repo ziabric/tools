@@ -1,0 +1,8 @@
+./libstring/cmake-build-debug/
+./libstring/.idea/
+
+./server/cmake-build-debug/
+./server/.idea/
+
+./cxxlogger/cmake-build-debug/
+./cxxlogger/.idea/
