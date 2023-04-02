@@ -1,30 +1,42 @@
 #include <iostream>
-#include <boost/asio.hpp>
 #include <string>
+#include <boost/asio.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
-using boost::asio::ip::tcp;
+using namespace boost::property_tree;
+using namespace boost::asio::ip;
 
 int main()
 {
-    try
+    boost::asio::io_service io_service;
+    tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 8080));
+
+    while (true)
     {
-        boost::asio::io_service io_service;
-        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 8080)); // прослушиваем порт 80
+        tcp::socket socket(io_service);
+        acceptor.accept(socket);
 
-        while (true) {
-            tcp::socket socket(io_service);
-            acceptor.accept(socket);
+        boost::asio::streambuf buffer;
+        boost::asio::read_until(socket, buffer, "\r\n");
 
-            boost::asio::streambuf request_buf;
-            boost::asio::read_until(socket, request_buf, "\r\n\r\n"); // читаем заголовки HTTP-запроса
+        std::istream input_stream(&buffer);
+        std::string request_method, http_version;
 
-            std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nContent-Type: text/plain\r\n\r\nHello, world!"; // формируем HTTP-ответ
-            boost::asio::write(socket, boost::asio::buffer(response)); // отправляем HTTP-ответ
-        }
-    }
-    catch (std::exception& e)
-    {
-        std::cerr << "Exception: " << e.what() << std::endl;
+        std::string req;
+        std::getline(input_stream, req, '\0');
+        std::cout<<req<<std::endl;
+
+        std::getline(input_stream, request_method, ' ');
+        input_stream.ignore();
+        std::getline(input_stream, http_version, '\r');
+
+
+        std::string response_body = "Hello, World";
+        std::string response_header ="HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n";
+
+        boost::asio::write(socket, boost::asio::buffer(response_header));
+        boost::asio::write(socket, boost::asio::buffer(response_body));
     }
 
     return 0;
