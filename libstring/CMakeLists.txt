@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.2)
+project(stringprj)
+set(CMAKE_CXX_STANDARD 17)
+add_library(string STATIC string.h string.cpp)
+add_executable(libstring-test main.cpp doctest.h)
+target_link_libraries(libstring-test string)
